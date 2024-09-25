@@ -1,0 +1,12 @@
+image: alpine/edge
+secrets:
+  - da2bdd99-4ea0-4290-8e60-6bf7db0efa77
+environment:
+  mirror_repository: lafzize
+  mirror_username: rehandaphedar
+tasks:
+  - mirror-to-github: |
+      cd ~/${mirror_repository}
+      ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+      git remote add github git@github.com:${mirror_username}/${mirror_repository}.git
+      git push --mirror github
