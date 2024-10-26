@@ -74,7 +74,7 @@ func fetchVerseText() {
 				words := verse.Words
 				words = words[:len(words)-1]
 				for _, word := range words {
-					verseText += word.TextUthmani + " "
+					verseText += word.TextUthmani + "\n"
 				}
 
 				filename := filepath.Join(rootDirectory, fmt.Sprintf("%s.txt", verse.VerseKey))

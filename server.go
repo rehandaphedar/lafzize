@@ -80,6 +80,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error returning JSON data: %s", err), http.StatusInternalServerError)
 		return
 	}
+
+	err = os.RemoveAll(requestDir)
+	if err != nil {
+		log.Printf("Error while deleting directory: %v", err)
+	}
 }
 
 func saveFile(filePath string, file io.Reader) error {
@@ -107,7 +112,7 @@ func transcode(inputPath, outputPath string) error {
 }
 
 func generateWordTimestamps(audioPath string, textPath string) error {
-	cmd := exec.Command("ctc-forced-aligner", "--audio_path", audioPath, "--text_path", textPath, "--language", "\"ara\"", "--romanize")
+	cmd := exec.Command("ctc-forced-aligner", "--audio_path", audioPath, "--text_path", textPath, "--language", "\"ara\"", "--romanize", "--preserve_split", "True")
 	_, err := cmd.Output()
 	if err != nil {
 		return err
