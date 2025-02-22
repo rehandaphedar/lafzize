@@ -1,6 +1,6 @@
 # Introduction
 
-A program to generate word level timestamps of Qurʾān recitations.
+A program to generate word level/word by word timestamps of Qurʾān recitations.
 
 Unfortunately, there is no public demo/instance at this point. I would host it on my VPS, but it would not be able to handle running AI models.
 
