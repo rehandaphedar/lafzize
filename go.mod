@@ -1,4 +1,4 @@
-module git.sr.ht/~rehandaphedar/lafzize
+module git.sr.ht/~rehandaphedar/lafzize/v2
 
 go 1.23.1
 

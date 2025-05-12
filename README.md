@@ -64,16 +64,19 @@ Example response:
 ## Installation
 
 ```sh
-go install git.sr.ht/~rehandaphedar/lafzize@latest
+go install git.sr.ht/~rehandaphedar/lafzize/v2@latest
 ```
 
 ## Fetching Verse Text Data
+
+Verse text data is fetched from [the Quran Foundation API](https://api-docs.quran.foundation). Thus, it requires `LAFZIZE_CLIENT_ID` and `LAFZIZE_CLIENT_SECRET` environment variables to be set. To obtain these, visit [the Request Access page](https://api-docs.quran.foundation/request-access) and fill out the form. It takes around 48-72 hours to get approved.
 
 Before running the program for the first time, run:
 
 ```sh
 lafzize fetch
 ```
+
 
 This will create a `data` folder in the current directory, and fetch verse text data from [the Quran.com API](https://api-docs.quran.com/) into `data/verse-text`.
 
