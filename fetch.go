@@ -48,7 +48,7 @@ func fetchVerseText() {
 		for page != 0 {
 			log.Printf("Processing Page %d\n", page)
 
-			url := fmt.Sprintf("https://api.quran.com/api/v4/verses/by_juz/%d?words=true&word_fields=text_uthmani&per_page=50&page=%d", juzNumber, page)
+			url := fmt.Sprintf("https://apis.quran.foundation/content/api/v4/verses/by_juz/%d?words=true&word_fields=text_uthmani&per_page=50&page=%d", juzNumber, page)
 			method := "GET"
 
 			client := &http.Client{}
