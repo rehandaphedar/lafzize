@@ -29,6 +29,15 @@ type Pagination struct {
 }
 
 func fetchVerseText() {
+	clientID := os.Getenv("LAFZIZE_CLIENT_ID")
+	clientSecret := os.Getenv("LAFZIZE_CLIENT_SECRET")
+
+	accessToken, err := fetchAccessToken(clientID, clientSecret)
+
+	if err != nil {
+		log.Fatalf("Error fetching access token: %v", err)
+	}
+
 	rootDirectory := filepath.Join("data", "verse-text")
 	os.MkdirAll(rootDirectory, 0755)
 
@@ -50,6 +59,8 @@ func fetchVerseText() {
 				return
 			}
 			req.Header.Add("Accept", "application/json")
+			req.Header.Add("x-client-id", clientID)
+			req.Header.Add("x-auth-token", accessToken)
 
 			res, err := client.Do(req)
 			if err != nil {
