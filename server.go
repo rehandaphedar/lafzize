@@ -112,7 +112,12 @@ func transcode(inputPath, outputPath string) error {
 }
 
 func generateWordTimestamps(audioPath string, textPath string) error {
-	cmd := exec.Command("ctc-forced-aligner", "--audio_path", audioPath, "--text_path", textPath, "--language", "\"ara\"", "--romanize", "--preserve_split", "True")
+	device := os.Getenv("LAFZIZE_DEVICE")
+	if device == "" {
+		device = "cpu"
+	}
+
+	cmd := exec.Command("ctc-forced-aligner", "--audio_path", audioPath, "--text_path", textPath, "--language", "\"ara\"", "--romanize", "--preserve_split", "True", "--device", device)
 	_, err := cmd.Output()
 	if err != nil {
 		return err
