@@ -82,6 +82,11 @@ This will create a `data` folder in the current directory, and fetch verse text 
 
 ## Running
 
+By default, `cpu` will be used as compute device. To use another device, set the environment variable `LAFZIZE_DEVICE`. Possible values:
+```
+cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone
+```
+
 To run the program afterwards:
 ```sh
 lafzize server 8004
