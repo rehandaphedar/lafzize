@@ -34,7 +34,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	requestUuid := uuid.NewString()
 	requestDir := filepath.Join("data", "requests", requestUuid)
 	uploadedFilePath := filepath.Join(requestDir, "uploaded")
-	transcodedFilePath := filepath.Join(requestDir, "audio.mp3")
+	transcodedFilePath := filepath.Join(requestDir, "audio.wav")
 	wordTimestampsFilePath := filepath.Join(requestDir, "audio.json")
 	verseKey := r.FormValue("verse_key")
 	verseTextFilepath := filepath.Join("data", "verse-text", fmt.Sprintf("%s.txt", verseKey))
@@ -105,6 +105,8 @@ func saveFile(filePath string, file io.Reader) error {
 func transcode(inputPath, outputPath string) error {
 	cmd := exec.Command("ffmpeg",
 		"-i", inputPath,
+		"-ar", "16000",
+		"-ac", "1",
 		outputPath,
 	)
 
