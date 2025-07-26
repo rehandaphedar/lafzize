@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -37,7 +38,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	transcodedFilePath := filepath.Join(requestDir, "audio.wav")
 	wordTimestampsFilePath := filepath.Join(requestDir, "audio.json")
 	verseKey := r.FormValue("verse_key")
-	verseTextFilepath := filepath.Join("data", "verse-text", fmt.Sprintf("%s.txt", verseKey))
+	verseKeySafe := strings.ReplaceAll(verseKey, ":", "_")
+	verseTextFilepath := filepath.Join("data", "verse-text", fmt.Sprintf("%s.txt", verseKeySafe))
 
 	if err := os.MkdirAll(requestDir, 0755); err != nil {
 		http.Error(w, fmt.Sprintf("Error creating directory: %s", err), http.StatusInternalServerError)

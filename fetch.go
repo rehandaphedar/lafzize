@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type APIResponse struct {
@@ -88,7 +89,8 @@ func fetchVerseText() {
 					verseText += word.TextUthmani + "\n"
 				}
 
-				filename := filepath.Join(rootDirectory, fmt.Sprintf("%s.txt", verse.VerseKey))
+				verseKeySafe := strings.ReplaceAll(verse.VerseKey, ":", "_")
+				filename := filepath.Join(rootDirectory, fmt.Sprintf("%s.txt", verseKeySafe))
 
 				file, err := os.Create(filename)
 				if err != nil {
