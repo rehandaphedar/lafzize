@@ -43,6 +43,7 @@ type Verse struct {
 	VerseNumber     int                `json:"verse_number"`
 	Words           []Word             `json:"words"`
 	Translations    []VerseTranslation `json:"translations"`
+	Sentences       []string           `json:"sentences,omitempty"` // Extra
 }
 
 type TranslatedName struct {
