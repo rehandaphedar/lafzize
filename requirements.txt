@@ -1,0 +1,5 @@
+git+https://github.com/MahmoudAshraf97/ctc-forced-aligner
+fastapi[standard]
+msgspec
+torch
+torchaudio

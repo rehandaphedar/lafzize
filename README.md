@@ -4,27 +4,28 @@ A program to generate word level/word by word timestamps of Qurʾān recitations
 
 Unfortunately, there is no public demo/instance at this point. I would host it on my VPS, but it would not be able to handle running AI models.
 
-# Dependencies
-
-- `ffmpeg` should be in `$PATH`.
-- [ctc-forced-aligner](https://github.com/MahmoudAshraf97/ctc-forced-aligner) should be in `$PATH`.
-
 # Usage
 
 Send a POST request to the API endpoint with the following data:
-- `file`: The audio file of the recitation.
+- `audio`: The audio file of the recitation.
 - `segments`: The range of verses recited in the format `[start_verse_key]:[end_verse_key]`.
 
 A verse key is of the format `[chapter_number]:[verse_number]`.
 
+There are some special segments that do not represent words from a verse:
+
+- `taawwudh`: Represents Taʿawwudh
+- `basmalah`: Represents Basmalah
+
 ## Examples
 
-For an audio file containing the recitation of Sūrah Al Fātiḥah:
+For an audio file containing the recitation of Sūrah Al Fātiḥah preceded by Taʿawwudh:
 
 ```sh
 curl \
 	-X POST \
-	-F "file=@001.mp3" \
+	-F "audio=@001.mp3" \
+	-F "segments=taawwudh" \
 	-F "segments=1:1,1:7" \
 		"http://localhost:8004"
 ```
@@ -34,7 +35,8 @@ If only one verse is recited, `start_verse_key` and `end_verse_key` should be th
 ```sh
 curl \
 	-X POST \
-	-F "file=@001001.mp3" \
+	-F "audio=@001001.mp3" \
+	-F "segments=taawwudh" \
 	-F "segments=1:1,1:1" \
 		"http://localhost:8004"
 ```
@@ -44,7 +46,9 @@ You can pass multiple `segments` values. They will be evaluated in the order the
 ```sh
 curl \
 	-X POST \
-	-F "file=@085.mp3" \
+	-F "audio=@085.mp3" \
+	-F "segments=taawwudh" \
+	-F "segments=basmalah" \
 	-F "segments=85:1,85:10" \
 	-F "segments=85:13,85:18" \
 	-F "segments=85:20,85:22" \
@@ -57,30 +61,32 @@ Example response:
 {
   "segments": [
     [
-      1,280,840,1,1,1
+      1,60,1200,0,0,0,1
     ],
     [
-      2,840,1800,1,1,2
+      2,1240,1820,0,0,0,2
     ],
     [
-      3,1800,3340,1,1,3
+      3,1860,1980,85,1,1,0
     ],
     [
-      4,3340,6060,1,1,4
+      4,2060,2160,85,1,2,0
     ],
     [
-      5,6060,7280,1,2,1
+      5,2200,3220,85,1,3,0
     ],
     [
-      6,7280,8200,1,2,2
+      6,3780,4340,85,2,1,0
     ],
     [
-      7,8200,8740,1,2,3
+      7,4460,5760,85,2,2,0
     ],
     [
-      8,8740,11320,1,2,4
+      8,6300,7540,85,3,1,0
     ],
-  ]
+    [
+      9,7580,9180,85,3,2,0
+    ]
 }
 ```
 
@@ -88,7 +94,7 @@ Each segment is an array of the format:
 
 ```
 [
-	segmentNumber, startMs, endMs, chapterNumber, verseNumber, wordNumber
+	segmentNumber, startMs, endMs, chapterNumber, verseNumber, wordNumber, specialSegmentType
 ]
 ```
 
@@ -98,15 +104,28 @@ Each segment is an array of the format:
 - `chapterNumber`: The chapter number of the word
 - `verseNumber`: The verse number of the word
 - `wordNumber`: The word number *in the chapter* of the word being recited
+- `specialSegmentType`: `0` -> No special segment (The segment is a word from a verse). `1` -> Taʿawwudh. `2` -> Basmalah.
 
-For example, consider that the recording provided contains verses `1:3-1:5`.
+If `specialSegmentType` is not 0, `chapterNumber`, `verseNumber`, and `wordNumber` will all be set to 0 and should be ignored.
+
+For example, consider that the recording provided contains Taʿawwudh followed by verses `1:3-1:5`.
+
+The first segment will have:
+- `segmentNumber` = 1
+- `chapterNumber` = 0
+- `verseNumber` = 0
+- `wordNumber` = 0
 
 The first word of verse `1:3` will have:
-- `segmentNumber` = 1
+- `segmentNumber` = 2
+- `chapterNumber` = 1
+- `verseNumber` = 3
 - `wordNumber` = 1
 
 The first word of verse `1:4` will have:
-- `segmentNumber` = 3
+- `segmentNumber` = 4
+- `chapterNumber` = 1
+- `verseNumber` = 4
 - `wordNumber` = 1
 
 This format is compatible with [Quranic Universal Library's format](https://qul.tarteel.ai/docs/with-segments), also used by the Quran Foundation API.
@@ -115,27 +134,30 @@ This format is compatible with [Quranic Universal Library's format](https://qul.
 
 ## Installation
 
+Clone the repository:
 ```sh
-go install git.sr.ht/~rehandaphedar/lafzize/v3@latest
+git clone https://git.sr.ht/~rehandaphedar/lafzize
+cd lafzize
 ```
 
-## Fetching Verse Text Data
-
-Verse text data is fetched from [the Quran Foundation API](https://api-docs.quran.foundation). It requires `client_id` and `client_secret` tokens. To obtain these, visit [the Request Access page](https://api-docs.quran.foundation/request-access) and fill out the form. It takes around 48-72 hours to get approved.
-
-Before running the program for the first time, run:
-
+Create a virtualenv if you want:
 ```sh
-lafzize api -client_id [client_id] -client_secret [client_secret]
+python -m venv venv
+source venv/bin/activate
 ```
 
-This will save the data in `data.json`. You can run `lafzize api -h` to see more options on customizing the output location.
-
-## Running
-
-Run `lafzize server`. See `lafzize server -h` for more options.
-
-Possible values of `-device` option:
+Install dependencies:
+```sh
+pip install -r requirements.txt
 ```
-cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone
+
+Note that you may need to change the requirements depending on:
+- whether you need CUDA/XPU/MPS specific Torch versions
+- the deployment method you want to use `fastapi run` vs `uvicorn` (with or without `uvloop`) vs `gunicorn` etc.
+
+Obtain `data.json` and `data_extra.json` from [qf-cache](https://sr.ht/~rehandaphedar/qf-client-golang/#caching).
+
+Then, run the server using your preferred deployment method:
+```sh
+fastapi run --port 8004
 ```
