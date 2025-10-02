@@ -17,6 +17,8 @@ There are some special segments that do not represent words from a verse:
 - `taawwudh`: Represents Taʿawwudh
 - `basmalah`: Represents Basmalah
 
+There is also OpenAPI documentation available at `/docs` and `/redoc`.
+
 ## Examples
 
 For an audio file containing the recitation of Sūrah Al Fātiḥah preceded by Taʿawwudh:
@@ -130,9 +132,7 @@ The first word of verse `1:4` will have:
 
 This format is compatible with [Quranic Universal Library's format](https://qul.tarteel.ai/docs/with-segments), also used by the Quran Foundation API.
 
-# Deploying
-
-## Installation
+# Deployment
 
 Clone the repository:
 ```sh
@@ -161,3 +161,24 @@ Then, run the server using your preferred deployment method:
 ```sh
 fastapi run --port 8004
 ```
+
+# Configuration
+
+Configuration is done through the following environment variables:
+
+- `LAFZIZE_MODEL`: Model to use for inference. Default: `MahmoudAshraf/mms-300m-1130-forced-aligner`.
+- `LAFZIZE_DEVICE`: Device to use for inference. Default: `"cuda"` if available, else `"cpu"`.
+- `LAFZIZE_DTYPE`: Torch dtype to use for inference. Default: `float16` if device is CUDA, else `float32`.
+- `LAFZIZE_BATCH_SIZE`: Batch size for inference. Default: `4`.
+- `LAFZIZE_WINDOW_SIZE`: Window size in seconds for audio chunking. Default: `30`.
+- `LAFZIZE_CONTEXT_SIZE`: Overlap between chunks in seconds. Default: `2`.
+- `LAFZIZE_ROMANIZE`: Whether to enable romanization for non latin scripts, or for multilingual models regardless of the language. Required when using the default model. Default: `True`.
+
+Details regarding the above options can be found in the [ctc-forced-aligner](https://github.com/MahmoudAshraf97/ctc-forced-aligner) repository.
+
+Additionally, there are some lafzize specific options:
+- `LAFZIZE_MAX_UPLOAD_SIZE`: Maximum allowed upload size in MB. Default: `128`.
+- `LAFZIZE_TAAWWUDH`: The segment to interpret as Taʿawwudh. Default: `"taawwudh"`.
+- `LAFZIZE_BASMALAH`: The segment to interpret as Basmalah. Default: `"basmalah"`.
+- `LAFZIZE_DATA`: Path to `data`. Default: `"data.json"`.
+- `LAFZIZE_DATA_EXTRA`: Path to `data_extra`. Default: `"data_extra.json"`.
