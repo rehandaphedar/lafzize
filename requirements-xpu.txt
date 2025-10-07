@@ -5,6 +5,7 @@ msgspec
 --extra-index-url https://download.pytorch.org/whl/xpu
 torch
 torchaudio
+torchcodec
 
 --extra-index-url https://pytorch-extension.intel.com/release-whl/stable/xpu/us/
 intel-extension-for-pytorch

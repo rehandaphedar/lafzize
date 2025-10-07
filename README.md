@@ -134,6 +134,8 @@ This format is compatible with [Quranic Universal Library's format](https://qul.
 
 # Deployment
 
+Firstly, make sure you have `ffmpeg` installed.
+
 Clone the repository:
 ```sh
 git clone https://git.sr.ht/~rehandaphedar/lafzize
@@ -154,6 +156,7 @@ pip install -r requirements.txt
 Note that you may need to change the requirements depending on:
 - whether you need CUDA/XPU/MPS specific Torch versions
 - the deployment method you want to use `fastapi run` vs `uvicorn` (with or without `uvloop`) vs `gunicorn` etc.
+
 
 Obtain `data.json` and `data_extra.json` from [qf-cache](https://sr.ht/~rehandaphedar/qf-client-golang/#caching).
 

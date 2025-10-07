@@ -3,3 +3,4 @@ fastapi[standard]
 msgspec
 torch
 torchaudio
+torchcodec
