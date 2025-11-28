@@ -1,15 +1,84 @@
-from fastapi import HTTPException
+from collections import defaultdict
+import msgspec
 
 from .config import config
-from .api import API, get_verse_keys, get_word_keys
 
 
-def generate_segments(request_segments: list[str], data: API):
+class Word(msgspec.Struct):
+    id: int
+    surah: str
+    ayah: str
+    word: str
+    location: str
+    text: str
+
+
+class MetadataPhrases(msgspec.Struct):
+    taawwudh: str
+    basmalah: str
+    taawwudh_code_v2: str = msgspec.field(name="taawwudh-code_v2")
+    basmalah_normal_code_v2: str = msgspec.field(name="basmalah_normal-code_v2")
+    basmalah_idgham_code_v2: str = msgspec.field(name="basmalah_idgham-code_v2")
+    makkah: str = msgspec.field(name="makkah-code_v4")
+    madinah: str = msgspec.field(name="madinah-code_v4")
+
+
+class MetadataChapter(msgspec.Struct):
+    code_v2: str
+    code_v4: str | None = None
+
+
+class MetadataJuz(msgspec.Struct):
+    code_v2: str
+    code_v4: str | None = None
+
+
+class Metadata(msgspec.Struct):
+    phrases: MetadataPhrases
+    chapters: list[MetadataChapter]
+    juzs: list[MetadataJuz]
+
+
+Words = dict[str, Word]
+Verses = dict[str, list[str]]
+
+
+def generate_verses(words: Words):
+    verses: Verses = defaultdict(list)
+    for word in sorted(words.values(), key=sort_word):
+        verse_key = f"{word.surah}:{word.ayah}"
+        verses[verse_key].append(word.text)
+    return dict(verses)
+
+
+def get_word_keys(words: Words):
+    word_keys: list[str] = []
+    for word in sorted(words.values(), key=sort_word):
+        word_key = f"{word.surah}:{word.ayah}:{word.word}"
+        word_keys.append(word_key)
+    return word_keys
+
+
+def get_verse_keys(words: Words):
+    verse_keys: list[str] = []
+    for word in sorted(words.values(), key=sort_word):
+        if int(word.word) != 1:
+            continue
+        verse_key = f"{word.surah}:{word.ayah}"
+        verse_keys.append(verse_key)
+    return verse_keys
+
+
+def sort_word(word: Word):
+    return int(word.surah), int(word.ayah), int(word.word)
+
+
+def generate_segments(request_segments: list[str], words: Words, verses: Verses):
     verse_key_segments: list[str] = []
     word_key_segments: list[str] = []
 
-    verse_keys = get_verse_keys(data)
-    word_keys = get_word_keys(data)
+    verse_keys = get_verse_keys(words)
+    word_keys = get_word_keys(words)
 
     for request_segment in request_segments:
         if request_segment in [config.taawwudh, config.basmalah]:
@@ -21,15 +90,8 @@ def generate_segments(request_segments: list[str], data: API):
         start_verse_key = verse_key_range[0]
         end_verse_key = verse_key_range[1]
 
-        words = data.verses[end_verse_key].words
-        if words is None:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Error while processing words data.",
-            )
-
         start_word_key = f"{start_verse_key}:1"
-        end_word_key = f"{end_verse_key}:{ len(words) - 1}"
+        end_word_key = f"{end_verse_key}:{ len(verses[end_verse_key])}"
 
         verse_key_segments.extend(
             extract_between(verse_keys, start_verse_key, end_verse_key)

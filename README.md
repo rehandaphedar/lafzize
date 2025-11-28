@@ -14,8 +14,8 @@ A verse key is of the format `[chapter_number]:[verse_number]`.
 
 There are some special segments that do not represent words from a verse:
 
-- `taawwudh`: Represents Taʿawwudh
-- `basmalah`: Represents Basmalah
+- `taawwudh`: Represents Taʿawwudh.
+- `basmalah`: Represents Basmalah.
 
 There is also OpenAPI documentation available at `/docs` and `/redoc`.
 
@@ -60,77 +60,45 @@ curl \
 Example response:
 
 ```json
-{
-  "segments": [
-    [
-      1,60,1200,0,0,0,1
-    ],
-    [
-      2,1240,1820,0,0,0,2
-    ],
-    [
-      3,1860,1980,85,1,1,0
-    ],
-    [
-      4,2060,2160,85,1,2,0
-    ],
-    [
-      5,2200,3220,85,1,3,0
-    ],
-    [
-      6,3780,4340,85,2,1,0
-    ],
-    [
-      7,4460,5760,85,2,2,0
-    ],
-    [
-      8,6300,7540,85,3,1,0
-    ],
-    [
-      9,7580,9180,85,3,2,0
-    ]
-}
-```
-
-Each segment is an array of the format:
-
-```
 [
-	segmentNumber, startMs, endMs, chapterNumber, verseNumber, wordNumber, specialSegmentType
+  {
+    "type": "phrase",
+    "key": "taawwudh",
+    "start": 320,
+    "end": 1220
+  },
+  {
+    "type": "phrase",
+    "key": "basmalah",
+    "start": 1280,
+    "end": 1820
+  },
+  {
+    "type": "word",
+    "key": "85:1:1",
+    "start": 1860,
+    "end": 1980
+  },
+  {
+    "type": "word",
+    "key": "85:1:2",
+    "start": 2060,
+    "end": 2160
+  },
+  {
+    "type": "word",
+    "key": "85:1:3",
+    "start": 2200,
+    "end": 3220
+  }
 ]
 ```
 
-- `segmentNumber`: The word number *in the context of the given verse range*
-- `startMs`: The start time of the word in milliseconds
-- `endMs`: The end time of the word in milliseconds
-- `chapterNumber`: The chapter number of the word
-- `verseNumber`: The verse number of the word
-- `wordNumber`: The word number *in the chapter* of the word being recited
-- `specialSegmentType`: `0` -> No special segment (The segment is a word from a verse). `1` -> Taʿawwudh. `2` -> Basmalah.
-
-If `specialSegmentType` is not 0, `chapterNumber`, `verseNumber`, and `wordNumber` will all be set to 0 and should be ignored.
-
-For example, consider that the recording provided contains Taʿawwudh followed by verses `1:3-1:5`.
-
-The first segment will have:
-- `segmentNumber` = 1
-- `chapterNumber` = 0
-- `verseNumber` = 0
-- `wordNumber` = 0
-
-The first word of verse `1:3` will have:
-- `segmentNumber` = 2
-- `chapterNumber` = 1
-- `verseNumber` = 3
-- `wordNumber` = 1
-
-The first word of verse `1:4` will have:
-- `segmentNumber` = 4
-- `chapterNumber` = 1
-- `verseNumber` = 4
-- `wordNumber` = 1
-
-This format is compatible with [Quranic Universal Library's format](https://qul.tarteel.ai/docs/with-segments), also used by the Quran Foundation API.
+Each segment is with the following keys:
+- `type`: The type of the segment (`word` or `phrase`).
+- `key`: The key of the segment (`word_key` for `word`, either `taawwudh` or `basmalah` for `phrase`).
+- `start`: The start time of the segment in milliseconds.
+- `end`: The end time of the segment in milliseconds.
 
 # Deployment
 
@@ -154,11 +122,12 @@ pip install -r requirements.txt
 ```
 
 Note that you may need to change the requirements depending on:
-- whether you need CUDA/XPU/MPS specific Torch versions
+- whether you need CUDA/XPU/MPS specific Torch versions.
 - the deployment method you want to use `fastapi run` vs `uvicorn` (with or without `uvloop`) vs `gunicorn` etc.
 
 
-Obtain `data.json` and `data_extra.json` from [qf-cache](https://sr.ht/~rehandaphedar/qf-client-golang/#caching).
+Obtain `qpc-hafs-word-by-word.json` from [QUL](https://qul.tarteel.ai/resources/quran-script).
+Obtain `quran-metadata-misc.json` from [quranic-universal-library-extras](https://sr.ht/~rehandaphedar/quranic-universal-library-extras).
 
 Then, run the server using your preferred deployment method:
 ```sh
@@ -183,5 +152,5 @@ Additionally, there are some lafzize specific options:
 - `LAFZIZE_MAX_UPLOAD_SIZE`: Maximum allowed upload size in MB. Default: `128`.
 - `LAFZIZE_TAAWWUDH`: The segment to interpret as Taʿawwudh. Default: `"taawwudh"`.
 - `LAFZIZE_BASMALAH`: The segment to interpret as Basmalah. Default: `"basmalah"`.
-- `LAFZIZE_DATA`: Path to `data`. Default: `"data.json"`.
-- `LAFZIZE_DATA_EXTRA`: Path to `data_extra`. Default: `"data_extra.json"`.
+- `LAFZIZE_WORDS`: Path to words. Default: `"qpc-hafs-word-by-word.json"`.
+- `LAFZIZE_METADATA`: Path to metadata. Default: `"quran-metadata-misc.json"`.

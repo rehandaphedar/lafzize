@@ -2,9 +2,11 @@ from contextvars import ContextVar
 from datetime import datetime
 import logging
 import uuid
+import msgspec
+from typing_extensions import override
 
 from fastapi import FastAPI, Request, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi_msgspec.responses import MsgSpecJSONResponse
 from contextlib import asynccontextmanager
 
 from ctc_forced_aligner import (
@@ -14,20 +16,18 @@ from ctc_forced_aligner import (
     get_spans,
 )
 
-import msgspec
-
 from .config import config
-from .api import API, APIExtra
 from .alignment_utils import load_audio
 from .text_utils import preprocess_text, postprocess_results
-from .util import generate_segments
+from .util import Words, Metadata, generate_verses, generate_segments
 
 
 request_id_var = ContextVar("request_id", default=None)
 
 
 class ContextInjector(logging.Filter):
-    def filter(self, record):
+    @override
+    def filter(self, record: logging.LogRecord):
         timestamp = datetime.fromtimestamp(record.created).strftime(
             "%Y-%m-%d %H:%M:%S.%f"
         )
@@ -47,29 +47,24 @@ class ContextInjector(logging.Filter):
 logger = logging.getLogger("uvicorn.error")
 logger.addFilter(ContextInjector())
 
-data: API
-data_extra: APIExtra
-
-model = None
-tokenizer = None
-
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    global words, metadata, verses, model, tokenizer
 
     access_logger = logging.getLogger("uvicorn.access")
     access_logger.handlers.clear()
     access_logger.propagate = True
 
-    global data, data_extra, model, tokenizer
     logger.info(f"Starting server with config: {config}")
 
     logger.info("Loading data...")
     try:
-        with open(config.data) as f:
-            data = msgspec.json.decode(f.read(), type=API)
-        with open(config.data_extra) as f:
-            data_extra = msgspec.json.decode(f.read(), type=APIExtra)
+        with open(config.words) as f:
+            words = msgspec.json.decode(f.read(), type=Words)
+            verses = generate_verses(words)
+        with open(config.metadata) as f:
+            metadata = msgspec.json.decode(f.read(), type=Metadata)
     except Exception as e:
         print(f"Error while loading data: {e}")
         raise
@@ -121,32 +116,21 @@ async def handler(audio: UploadFile, segments: list[str]):
     logger.info("Generated emissions.")
 
     logger.info("Generating segments...")
-    verse_segments, word_segments = generate_segments(segments, data)
+    verse_segments, word_segments = generate_segments(segments, words, verses)
     logger.info("Generated segments.")
 
     logger.info("Generating text...")
     text: list[str] = []
     for verse_segment in verse_segments:
         if verse_segment == config.taawwudh:
-            text.append(data_extra.misc.taawwudh)
+            text.append(metadata.phrases.taawwudh)
             continue
         if verse_segment == config.basmalah:
-            text.append(data_extra.misc.basmalah)
+            text.append(metadata.phrases.basmalah)
             continue
 
-        verse = data.verses[verse_segment]
-        if verse.words is None:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Error while processing words data.",
-            )
-        for word in verse.words[:-1]:
-            if word.text_uthmani is None:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Error while processing words data.",
-                )
-            text.append(word.text_uthmani)
+        for word in verses[verse_segment]:
+            text.append(word)
     logger.info("Generated text.")
 
     logger.info("Preprocessing text...")
@@ -170,7 +154,7 @@ async def handler(audio: UploadFile, segments: list[str]):
     logger.info("Postprocessed results.")
 
     logger.info(f"Processed request.")
-    return JSONResponse(results)
+    return MsgSpecJSONResponse(results)
 
 
 @app.middleware("http")

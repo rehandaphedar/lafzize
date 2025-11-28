@@ -21,8 +21,8 @@ class Config(msgspec.Struct):
     max_upload_size: int
     taawwudh: str
     basmalah: str
-    data: str
-    data_extra: str
+    words: str
+    metadata: str
 
 
 config = Config(
@@ -41,6 +41,6 @@ config = Config(
     max_upload_size=int(os.getenv("LAFZIZE_MAX_UPLOAD_SIZE", "128")),
     taawwudh=os.getenv("LAFZIZE_TAAWWUDH", "taawwudh"),
     basmalah=os.getenv("LAFZIZE_BASMALAH", "basmalah"),
-    data=os.getenv("LAFZIZE_DATA", "data.json"),
-    data_extra=os.getenv("LAFZIZE_DATA_EXTRA", "data_extra.json"),
+    words=os.getenv("LAFZIZE_WORDS", "qpc-hafs-word-by-word.json"),
+    metadata=os.getenv("LAFZIZE_METADATA", "quran-metadata-misc.json"),
 )

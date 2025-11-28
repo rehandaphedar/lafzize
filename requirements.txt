@@ -1,6 +1,7 @@
 git+https://github.com/MahmoudAshraf97/ctc-forced-aligner
 fastapi[standard]
 msgspec
+fastapi-msgspec
 torch
 torchaudio
 torchcodec
