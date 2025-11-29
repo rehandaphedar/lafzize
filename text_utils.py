@@ -1,11 +1,11 @@
+from pydantic import BaseModel
 from ctc_forced_aligner import text_normalize, get_uroman_tokens
 from ctc_forced_aligner.alignment_utils import Segment as Span
-import msgspec
 
 from .config import config
 
 
-class Segment(msgspec.Struct):
+class Segment(BaseModel):
     type: str
     key: str
     start: int

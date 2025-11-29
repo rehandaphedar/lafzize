@@ -2,11 +2,10 @@ from contextvars import ContextVar
 from datetime import datetime
 import logging
 import uuid
-import msgspec
+from pydantic import TypeAdapter
 from typing_extensions import override
 
 from fastapi import FastAPI, Request, UploadFile, HTTPException
-from fastapi_msgspec.responses import MsgSpecJSONResponse
 from contextlib import asynccontextmanager
 
 from ctc_forced_aligner import (
@@ -18,7 +17,7 @@ from ctc_forced_aligner import (
 
 from .config import config
 from .alignment_utils import load_audio
-from .text_utils import preprocess_text, postprocess_results
+from .text_utils import Segment, preprocess_text, postprocess_results
 from .util import Words, Metadata, generate_verses, generate_segments
 
 
@@ -61,10 +60,10 @@ async def lifespan(_: FastAPI):
     logger.info("Loading data...")
     try:
         with open(config.words) as f:
-            words = msgspec.json.decode(f.read(), type=Words)
+            words = TypeAdapter(Words).validate_json(f.read())
             verses = generate_verses(words)
         with open(config.metadata) as f:
-            metadata = msgspec.json.decode(f.read(), type=Metadata)
+            metadata = Metadata.model_validate_json(f.read())
     except Exception as e:
         print(f"Error while loading data: {e}")
         raise
@@ -89,7 +88,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-@app.post("/")
+@app.post("/", response_model=list[Segment])
 async def handler(audio: UploadFile, segments: list[str]):
     logger.info(
         f"Started processing request with audio {audio} and segments {segments}..."
@@ -154,7 +153,7 @@ async def handler(audio: UploadFile, segments: list[str]):
     logger.info("Postprocessed results.")
 
     logger.info(f"Processed request.")
-    return MsgSpecJSONResponse(results)
+    return results
 
 
 @app.middleware("http")

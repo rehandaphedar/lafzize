@@ -1,10 +1,10 @@
 from collections import defaultdict
-import msgspec
+from pydantic import BaseModel, Field
 
 from .config import config
 
 
-class Word(msgspec.Struct):
+class Word(BaseModel):
     id: int
     surah: str
     ayah: str
@@ -13,27 +13,27 @@ class Word(msgspec.Struct):
     text: str
 
 
-class MetadataPhrases(msgspec.Struct):
+class MetadataPhrases(BaseModel):
     taawwudh: str
     basmalah: str
-    taawwudh_code_v2: str = msgspec.field(name="taawwudh-code_v2")
-    basmalah_normal_code_v2: str = msgspec.field(name="basmalah_normal-code_v2")
-    basmalah_idgham_code_v2: str = msgspec.field(name="basmalah_idgham-code_v2")
-    makkah: str = msgspec.field(name="makkah-code_v4")
-    madinah: str = msgspec.field(name="madinah-code_v4")
+    taawwudh_code_v2: str = Field(alias="taawwudh-code_v2")
+    basmalah_normal_code_v2: str = Field(alias="basmalah_normal-code_v2")
+    basmalah_idgham_code_v2: str = Field(alias="basmalah_idgham-code_v2")
+    makkah: str = Field(alias="makkah-code_v4")
+    madinah: str = Field(alias="madinah-code_v4")
 
 
-class MetadataChapter(msgspec.Struct):
+class MetadataChapter(BaseModel):
     code_v2: str
     code_v4: str | None = None
 
 
-class MetadataJuz(msgspec.Struct):
+class MetadataJuz(BaseModel):
     code_v2: str
     code_v4: str | None = None
 
 
-class Metadata(msgspec.Struct):
+class Metadata(BaseModel):
     phrases: MetadataPhrases
     chapters: list[MetadataChapter]
     juzs: list[MetadataJuz]

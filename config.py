@@ -1,5 +1,5 @@
 import os
-import msgspec
+from pydantic import BaseModel, ConfigDict
 
 import torch
 
@@ -10,7 +10,8 @@ TORCH_DTYPES = {
 }
 
 
-class Config(msgspec.Struct):
+class Config(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     model: str
     device: str
     dtype: torch.dtype
