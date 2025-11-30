@@ -115,7 +115,7 @@ async def handler(audio: UploadFile, segments: list[str]):
     logger.info("Generated emissions.")
 
     logger.info("Generating segments...")
-    verse_segments, word_segments = generate_segments(segments, words, verses)
+    verse_segments, word_segments = generate_segments(segments, verses)
     logger.info("Generated segments.")
 
     logger.info("Generating text...")

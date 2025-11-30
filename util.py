@@ -48,23 +48,23 @@ def generate_verses(words: Words):
     for word in sorted(words.values(), key=sort_word):
         verse_key = f"{word.surah}:{word.ayah}"
         verses[verse_key].append(word.text)
+    for verse_key in verses.values():
+        _ = verse_key.pop()
     return dict(verses)
 
 
-def get_word_keys(words: Words):
+def get_word_keys(verses: Verses):
     word_keys: list[str] = []
-    for word in sorted(words.values(), key=sort_word):
-        word_key = f"{word.surah}:{word.ayah}:{word.word}"
-        word_keys.append(word_key)
+    for verse_key, verse in sorted(verses.items(), key=sort_verse):
+        for word_idx, _ in enumerate(verse):
+            word_key = f"{verse_key}:{word_idx + 1}"
+            word_keys.append(word_key)
     return word_keys
 
 
-def get_verse_keys(words: Words):
+def get_verse_keys(verses: Verses):
     verse_keys: list[str] = []
-    for word in sorted(words.values(), key=sort_word):
-        if int(word.word) != 1:
-            continue
-        verse_key = f"{word.surah}:{word.ayah}"
+    for verse_key, _ in sorted(verses.items(), key=sort_verse):
         verse_keys.append(verse_key)
     return verse_keys
 
@@ -73,12 +73,20 @@ def sort_word(word: Word):
     return int(word.surah), int(word.ayah), int(word.word)
 
 
-def generate_segments(request_segments: list[str], words: Words, verses: Verses):
+def sort_verse(item: tuple[str, list[str]]):
+    verse_key = item[0]
+    split = verse_key.split(":")
+    chapter = split[0]
+    verse = split[1]
+    return int(chapter), int(verse)
+
+
+def generate_segments(request_segments: list[str], verses: Verses):
     verse_key_segments: list[str] = []
     word_key_segments: list[str] = []
 
-    verse_keys = get_verse_keys(words)
-    word_keys = get_word_keys(words)
+    verse_keys = get_verse_keys(verses)
+    word_keys = get_word_keys(verses)
 
     for request_segment in request_segments:
         if request_segment in [config.taawwudh, config.basmalah]:
