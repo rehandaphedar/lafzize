@@ -19,18 +19,11 @@ def preprocess_text(
     normalized_text: list[str] = [text_normalize(segment, language) for segment in text]
 
     if romanize:
-        tokens = get_uroman_tokens(normalized_text, language)
+        tokens: list[str] = get_uroman_tokens(normalized_text, language)
     else:
         tokens = [" ".join(list(word)) for word in normalized_text]
 
-    tokens_starred: list[str] = []
-    text_starred: list[str] = []
-
-    for token, chunk in zip(tokens, text):
-        tokens_starred.extend(["<star>", token])
-        text_starred.extend(["<star>", chunk])
-
-    return tokens_starred, text_starred
+    return tokens, text
 
 
 def postprocess_results(
