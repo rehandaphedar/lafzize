@@ -4,6 +4,8 @@ A program to generate word level/word by word timestamps of Qurʾān recitations
 
 Unfortunately, there is no public demo/instance at this point. I would host it on my VPS, but it would not be able to handle running AI models.
 
+However, there is [a demo of how to use it in an IPython notebook (like Google Colab)](https://sr.ht/~rehandaphedar/lafzize-ipython).
+
 # Usage
 
 Send a POST request to the API endpoint with the following data:
